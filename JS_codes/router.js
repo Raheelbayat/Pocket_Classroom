@@ -1,8 +1,7 @@
-// router.js
 import { initCapsules, createLearnFlashcard, createLearnQuizCard } from "./capsule.js";
 import Storage from "./storage.js";
 
-// =================== Utilities ===================
+//Utilities
 function timeAgo(isoDate) {
   const diff = Math.floor((Date.now() - new Date(isoDate)) / 1000);
   if (diff < 60) return `${diff}s ago`;
@@ -20,7 +19,7 @@ function escapeHtml(str) {
     .replace(/'/g, "&#039;");
 }
 
-// =================== Author Helpers ===================
+// Author Helpers
 function createFlashcardRow(f = { front: "", back: "" }) {
   const row = document.createElement("div");
   row.className = "d-flex gap-2 mb-2 align-items-start";
@@ -111,7 +110,7 @@ function autosaveDraft() {
   localStorage.setItem("capsule_draft", JSON.stringify(draft));
 }
 
-// =================== Router ===================
+//here is the Router
 const Router = {
   routes: {
     "/": () => `
@@ -188,7 +187,7 @@ const Router = {
 
     initCapsules();
 
-    // ===== Library =====
+    //here is the library
     if (route === "/") {
       const container = document.getElementById("capsuleContainer");
       const capsules = Storage.listIndex();
@@ -264,7 +263,7 @@ const Router = {
       document.getElementById("newCapsBtnFromLibrary")?.addEventListener("click", () => Router.nav("/author"));
     }
 
-    // ===== Author =====
+    // here is the author
     if (route === "/author") {
       loadDraftToForm();
       document.getElementById("addFlashcardBtn")?.addEventListener("click", () => {
@@ -286,7 +285,7 @@ const Router = {
       });
     }
 
-    // ===== Learn =====
+    // here is the Learn
     if (route === "/learn") {
       const notes = document.getElementById("notesContainer");
       const flash = document.getElementById("flashcardsContainerLearn");
@@ -303,3 +302,4 @@ const Router = {
 };
 
 export default Router;
+
