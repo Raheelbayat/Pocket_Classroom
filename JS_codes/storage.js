@@ -1,4 +1,3 @@
-
 const SCHEMA = 'pocket-classroom/v1';
 
 function uid() {
