@@ -1,7 +1,8 @@
+
 import { initCapsules, createLearnFlashcard, createLearnQuizCard } from "./capsule.js";
 import Storage from "./storage.js";
 
-//Utilities
+// utilities
 function timeAgo(isoDate) {
   const diff = Math.floor((Date.now() - new Date(isoDate)) / 1000);
   if (diff < 60) return `${diff}s ago`;
@@ -19,7 +20,7 @@ function escapeHtml(str) {
     .replace(/'/g, "&#039;");
 }
 
-// Author Helpers
+// flashcard row
 function createFlashcardRow(f = { front: "", back: "" }) {
   const row = document.createElement("div");
   row.className = "d-flex gap-2 mb-2 align-items-start";
@@ -110,7 +111,7 @@ function autosaveDraft() {
   localStorage.setItem("capsule_draft", JSON.stringify(draft));
 }
 
-//here is the Router
+// router
 const Router = {
   routes: {
     "/": () => `
@@ -151,6 +152,7 @@ const Router = {
           <div class="d-flex gap-2 mt-3">
             <button type="button" class="btn btn-primary1" id="saveCapsuleBtn">Save Capsule</button>
             <button type="button" class="btn btn-salmon" id="clearDraftBtn">Clear Draft</button>
+            <button type="button" class="btn btn-json" id="importJsonBtnAuthor">Import JSON</button>
           </div>
         </form>
       </div>
@@ -186,8 +188,35 @@ const Router = {
     entry.innerHTML = Router.routes[route]?.() || "<h1>Page not found</h1>";
 
     initCapsules();
+//JSON IMPORT
+    const importBtns = [
+      document.getElementById("importJsonBtn"),
+      document.getElementById("importJsonBtnAuthor")
+    ];
+    importBtns.forEach(btn => {
+      if (!btn) return;
+      btn.addEventListener("click", () => {
+        const fileInput = document.createElement("input");
+        fileInput.type = "file";
+        fileInput.accept = ".json";
+        fileInput.addEventListener("change", async e => {
+          const file = e.target.files[0];
+          if (!file) return;
+          const text = await file.text();
+          try {
+            const parsed = JSON.parse(text);
+            Storage.importCapsule(parsed);
+            alert(`Imported capsule "${parsed.capsule.meta.title}" successfully!`);
+            Router.nav("/");
+          } catch {
+            alert("Failed to import JSON. Make sure it matches the correct schema.");
+          }
+        });
+        fileInput.click();
+      });
+    });
 
-    //here is the library
+    // LIBRARY PAGE
     if (route === "/") {
       const container = document.getElementById("capsuleContainer");
       const capsules = Storage.listIndex();
@@ -263,29 +292,33 @@ const Router = {
       document.getElementById("newCapsBtnFromLibrary")?.addEventListener("click", () => Router.nav("/author"));
     }
 
-    // here is the author
+    // author page
     if (route === "/author") {
       loadDraftToForm();
+
       document.getElementById("addFlashcardBtn")?.addEventListener("click", () => {
         document.getElementById("flashcardsContainer")?.appendChild(createFlashcardRow());
       });
+
       document.getElementById("addQuestionBtn")?.addEventListener("click", () => {
         document.getElementById("quizContainer")?.appendChild(createQuestionRow());
       });
+
       document.getElementById("clearDraftBtn")?.addEventListener("click", () => {
         if (confirm("Clear draft?")) { localStorage.removeItem("capsule_draft"); Router.nav("/author"); }
       });
+
       document.getElementById("saveCapsuleBtn")?.addEventListener("click", () => {
         const draft = JSON.parse(localStorage.getItem("capsule_draft") || "{}");
         if (!draft.meta || !draft.meta.title) return alert("Title required");
-        const id = Storage.saveCapsule(draft);
+        Storage.saveCapsule(draft);
         localStorage.removeItem("capsule_draft");
         alert("Saved successfully!");
         Router.nav("/");
       });
     }
 
-    // here is the Learn
+    // learn page
     if (route === "/learn") {
       const notes = document.getElementById("notesContainer");
       const flash = document.getElementById("flashcardsContainerLearn");
@@ -302,4 +335,3 @@ const Router = {
 };
 
 export default Router;
-
